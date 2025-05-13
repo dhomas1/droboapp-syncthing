@@ -15,7 +15,7 @@ This makes use of the precompiled binary for arm processors.  This means using S
 
 ## I just want to install the DroboApp, what do I do?
 
-Check the [releases](https://github.com/vrillusions/droboapp-syncthing/releases) page. If there are no releases available, then you have to compile.
+Check the [releases](https://github.com/dhomas1/droboapp-syncthing/releases) page. If there are no releases available, then you have to compile.
 
 * Place the compiled `tgz` file in the `DroboApps` share, or `scp` the file to `/mnt/DroboFS/Shares/DroboApps`.
 * Either run `/usr/bin/DroboApps.sh install` on command line or restart drobo to install
@@ -27,7 +27,7 @@ First make sure that you have a [working cross-compiling VM](https://github.com/
 Log in the VM, pick a temporary folder (e.g., `~/build`), and then do:
 
 ```
-git clone https://github.com/vrillusions/droboapp-syncthing.git
+git clone https://github.com/dhomas1/droboapp-syncthing.git
 cd droboapp-syncthing
 ./build.sh
 ls -la *.tgz
