@@ -4,13 +4,12 @@ This is a set of scripts to package a DroboApp from scratch, i.e., download sour
 
 ## Using precompiled binary
 
-This makes use of the precompiled binary for arm processors.  This means using Syncthing's built in auto-update should work fine.  Also this was only tested on Drobo 5N.
+This makes use of the precompiled binary for arm processors.  This means using Syncthing's built in auto-update should work fine.  Also this was only tested on Drobo 5N2. However, the repository this was forked from was tested on a Drobo 5N.
 
 ## Configuration notes
 
-* Don't be surprised if this isn't being kept up to date with latest version.  Syncthing comes with an auto-update function and will bring you up to the latest version
 * Because of how DroboApps are contained in the DroboApps share, this does not setup the default `Sync` folder that's created on new installations since it would be within that DroboApps folder.
-* Web address is hard coded to `0.0.0.0:8384` or else it would have started listening on `127.0.0.1` which wouldn't be too helpful
+* Web address is hard coded to `0.0.0.0:8384` or else it would have started listening on `127.0.0.1` which wouldn't be too helpful (where 0.0.0.0 is replaced by your Drobo's IP).
 * When sharing folders can use `/mnt/DroboFS/Shares/` to get to all your current shares and can then specify a directory.
 
 ## I just want to install the DroboApp, what do I do?
