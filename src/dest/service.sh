@@ -30,6 +30,11 @@ fi
 start() {
   export HOME="${data_dir}"
   export STNODEFAULTFOLDER='true'
+
+# Increase inotify watch limit for Syncthing
+  sysctl -w fs.inotify.max_user_watches=204800
+echo "Increased fs.inotify.max_user_watches to $(cat /proc/sys/fs/inotify/max_user_watches)" >> "${logfile}"
+
   start-stop-daemon -S -m -b -x "${daemon}" -p "${pidfile}" -- \
     -gui-address="0.0.0.0:8384" \
     -home "${data_dir}" \
