@@ -7,7 +7,7 @@
 
 framework_version="2.1"
 name="syncthing"
-version="1.2.1"
+version="2.0.2"
 description="Syncthing"
 depends=""
 webui=":8384/"
@@ -36,11 +36,17 @@ start() {
 echo "Increased fs.inotify.max_user_watches to $(cat /proc/sys/fs/inotify/max_user_watches)" >> "${logfile}"
 
   start-stop-daemon -S -m -b -x "${daemon}" -p "${pidfile}" -- \
-    -gui-address="0.0.0.0:8384" \
-    -home "${data_dir}" \
-    -logfile "${logfile}" \
-    -logflags=3 \
-    -no-browser
+    --gui-address="0.0.0.0:8384" \
+    --home="${data_dir}" \
+    --log-file="${logfile}" \
+    --log-flag=3 \
+    --no-browser
+#Version 1.3.0 CLI
+#    -gui-address="0.0.0.0:8384" \
+#    -home "${data_dir}" \
+#    -logfile "${logfile}" \
+#    -logflags=3 \
+#    -no-browser
   rm -f "${errorfile}"
   echo "Syncthing is configured." >"${statusfile}"
 }
