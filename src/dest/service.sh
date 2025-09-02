@@ -36,10 +36,10 @@ start() {
 echo "Increased fs.inotify.max_user_watches to $(cat /proc/sys/fs/inotify/max_user_watches)" >> "${logfile}"
 
   start-stop-daemon -S -m -b -x "${daemon}" -p "${pidfile}" -- \
+    serve \
     --gui-address="0.0.0.0:8384" \
     --home="${data_dir}" \
-    --log-file="${logfile}" \
-    --log-flag=3 \
+    --logfile="${logfile}" \
     --no-browser
 #Version 1.3.0 CLI
 #    -gui-address="0.0.0.0:8384" \
