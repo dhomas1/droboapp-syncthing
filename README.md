@@ -1,6 +1,6 @@
 # syncthing
 
-This is a set of scripts to package a DroboApp from scratch, i.e., download sources, unpackage, compile, install, and package in a TGZ file.
+This is a set of scripts to package a DroboApp from scratch, i.e., download sources, unpackage, compile, install, and package in a TGZ file. Now updated for Syncthing 2.0.x!
 
 ## Using precompiled binary
 
