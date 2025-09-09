@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 #
-# SyncThing service
+# SyncThing service - Optimized for Drobo 5N2
 
 # import DroboApps framework functions
 . /etc/service.subr
@@ -48,8 +48,8 @@ _optimize_system() {
 start() {
   export HOME="${data_dir}"
   export STNODEFAULTFOLDER='true'
-
- # Performance optimizations for ARM/low-memory systems
+  
+  # Performance optimizations for ARM/low-memory systems
   export GOMAXPROCS=1                    # Single CPU core usage
   export GOGC=20                         # More aggressive GC
   export GOMEMLIMIT=100MiB              # Memory limit
@@ -69,7 +69,8 @@ start() {
   # Set process limits
   ulimit -v 131072  # 128MB virtual memory limit
   ulimit -n 1024    # File descriptor limit
-
+  
+  # Start with lower priority to prevent CPU hogging
   start-stop-daemon -S -m -b -x "${daemon}" -p "${pidfile}" -N 5 -- \
     serve \
     --gui-address="0.0.0.0:8384" \
