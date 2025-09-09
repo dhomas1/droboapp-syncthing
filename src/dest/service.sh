@@ -27,29 +27,109 @@ if [ -z "${FRAMEWORK_VERSION:-}" ]; then
   . "${prog_dir}/libexec/service.subr"
 fi
 
+# Performance optimization function
+_optimize_system() {
+  # Increase inotify watch limit for Syncthing
+  sysctl -w fs.inotify.max_user_watches=204800 2>/dev/null || true
+  
+  # Optimize for low-memory systems
+  echo 1 > /proc/sys/vm/swappiness 2>/dev/null || true
+  
+  # Set I/O scheduler to deadline for better responsiveness on spinning disks
+  echo deadline > /sys/block/sda/queue/scheduler 2>/dev/null || true
+  
+  # Reduce dirty page cache to free memory faster
+  echo 5 > /proc/sys/vm/dirty_background_ratio 2>/dev/null || true
+  echo 10 > /proc/sys/vm/dirty_ratio 2>/dev/null || true
+  
+  echo "System optimizations applied" >> "${logfile}"
+}
+
 start() {
   export HOME="${data_dir}"
   export STNODEFAULTFOLDER='true'
 
-# Increase inotify watch limit for Syncthing
-  sysctl -w fs.inotify.max_user_watches=204800
-echo "Increased fs.inotify.max_user_watches to $(cat /proc/sys/fs/inotify/max_user_watches)" >> "${logfile}"
+ # Performance optimizations for ARM/low-memory systems
+  export GOMAXPROCS=1                    # Single CPU core usage
+  export GOGC=20                         # More aggressive GC
+  export GOMEMLIMIT=100MiB              # Memory limit
+  export GODEBUG=madvdontneed=1         # Better memory release
+  
+  # Apply system optimizations
+  _optimize_system
 
-  start-stop-daemon -S -m -b -x "${daemon}" -p "${pidfile}" -- \
+  # Create tmpfs for temporary files if possible
+  if [ ! -d "/tmp/syncthing-tmp" ]; then
+    mkdir -p "/tmp/syncthing-tmp"
+    # Try to mount as tmpfs (will fail silently if not possible)
+    mount -t tmpfs -o size=16M,mode=0755 tmpfs "/tmp/syncthing-tmp" 2>/dev/null || true
+  fi
+  export TMPDIR="/tmp/syncthing-tmp"
+
+  # Set process limits
+  ulimit -v 131072  # 128MB virtual memory limit
+  ulimit -n 1024    # File descriptor limit
+
+  start-stop-daemon -S -m -b -x "${daemon}" -p "${pidfile}" -N 5 -- \
     serve \
     --gui-address="0.0.0.0:8384" \
     --home="${data_dir}" \
     --logfile="${logfile}" \
-    --no-browser
-#Version 1.3.0 CLI
-#    -gui-address="0.0.0.0:8384" \
-#    -home "${data_dir}" \
-#    -logfile "${logfile}" \
-#    -logflags=3 \
-#    -no-browser
+    --log-max-old-files=2 \
+    --log-max-size=1048576 \
+    --no-browser \
+    --no-restart \
+    --verbose=false
+
   rm -f "${errorfile}"
-  echo "Syncthing is configured." >"${statusfile}"
+  echo "Syncthing is configured with performance optimizations." >"${statusfile}"
 }
+
+stop() {
+  # Clean up tmpfs
+  umount "/tmp/syncthing-tmp" 2>/dev/null || true
+  rm -rf "/tmp/syncthing-tmp"
+}
+
+# Memory monitoring function
+check_memory() {
+  if [ -f "${pidfile}" ]; then
+    local PID=$(cat "${pidfile}")
+    if [ -n "$PID" ]; then
+      local MEM_KB=$(ps -o pid,vsz | grep "^[[:space:]]*${PID}" | awk '{print $2}')
+      if [ -n "$MEM_KB" ] && [ "$MEM_KB" -gt 204800 ]; then  # 200MB limit
+        echo "$(date): Memory limit exceeded (${MEM_KB}KB), restarting..." >> "${logfile}"
+        stop
+        sleep 5
+        start
+      fi
+    fi
+  fi
+}
+
+# Override the main function to add memory checking
+case "${1:-}" in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  restart)
+    stop
+    start
+    ;;
+  status)
+    status
+    ;;
+  check-memory)
+    check_memory
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|status|check-memory}"
+    exit 1
+    ;;
+esac
 
 # boilerplate
 if [ ! -d "${tmp_dir}" ]; then mkdir -p "${tmp_dir}"; fi
